@@ -271,7 +271,10 @@ function tabs(){return `<nav class="tabs" role="tablist">
   <button role="tab" aria-selected="${S.tab==="hot"}" data-t="hot">빈출 학습</button>
   <button role="tab" aria-selected="${S.tab==="rand"}" data-t="rand">랜덤 20 · 기록</button></nav>`}
 function bindTabs(){document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;S.confirm=false;save();home();window.scrollTo(0,0)})}
-function home(){S.view="home";$("#bar").hidden=true;S.sess=null;if(S.tab!=="rand")S.tab="hot";S.tab==="hot"?hotHome():randHome();bindTabs()}
+/* 하단 고정 버튼 높이만큼 본문 아래 여백을 확보해서 문제 끝부분(④·⑤ 선택지)이 가려지지 않게 함 */
+function fitPad(){const bar=$("#bar"),app=$("#app");if(!bar||!app)return;app.style.paddingBottom=bar.hidden?"":(bar.offsetHeight+32)+"px"}
+window.addEventListener("resize",()=>fitPad());
+function home(){S.view="home";$("#bar").hidden=true;fitPad();S.sess=null;if(S.tab!=="rand")S.tab="hot";S.tab==="hot"?hotHome():randHome();bindTabs()}
 
 /* ---------- 빈출 학습 ---------- */
 function hotFilterOk(c){const f=S.hfilter;return f==="전체"||c.era===f}
@@ -434,7 +437,7 @@ function renderMenu(){
 }
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&S.menu)closeMenu()});
 function sessResult(s){
-  S.view="result";$("#bar").hidden=true;S.sess=s;
+  S.view="result";$("#bar").hidden=true;fitPad();S.sess=s;
   const r=sessScore(s);const wrong=s.ids.filter(id=>s.picks[id]!==it(id).a);
   const pts=s.ids.reduce((a,id)=>a+(s.picks[id]===it(id).a?it(id).p:0),0), ptsAll=s.ids.reduce((a,id)=>a+it(id).p,0);
   const pct=Math.round(r.ok/r.total*100);
@@ -487,6 +490,7 @@ function quiz(){
   const nextLabel=!last?"다음":sess&&!S.review?(sess.fin?"결과 보기":"안 푼 문제로"):sess?"결과로":"목록으로";
   bar.innerHTML=`<div class="bar-in"><div class="opts">${[1,2,3,4,5].map(i=>`<button class="opt ${done&&i===q.a?"right":""} ${done&&i===pick&&pick!==q.a?"wrongpick":""}" data-i="${i}" ${done?"disabled":""} aria-label="${i}번 선택">${MARK[i]}</button>`).join("")}</div>
   <div class="nav"><button class="btn ghost" id="prev" ${S.idx?"":"disabled"}>이전</button><button class="btn" id="next">${nextLabel}</button></div></div>`;
+  fitPad();
   bar.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
     const v=+b.dataset.i;S.ans[q.id]=v;
     if(sess){sess.picks[q.id]=v;if(Object.keys(sess.picks).length>=sess.ids.length)sess.fin=true}
