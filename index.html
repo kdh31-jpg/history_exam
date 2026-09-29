@@ -144,6 +144,9 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .sh-btn{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:13px;font-size:15px;font-weight:500;text-align:center}
 .sh-btn.danger{color:var(--bad);border-color:var(--bad-soft)}
 @media (prefers-reduced-motion:no-preference){.sh{animation:up .18s ease-out}@keyframes up{from{transform:translateY(20px)}to{transform:none}}}
+.kw-btn{border:1px dashed var(--hint);background:var(--hint-soft);color:var(--hint);border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:500}
+.kw{display:inline-flex;align-items:center;gap:6px;font-size:14px}
+.kw .tag{margin:0}
 .sheet img.loading{min-height:320px;background:var(--line)}</style>
 <div class="wrap" id="app"></div>
 <div class="bar" id="bar" hidden></div>
@@ -475,7 +478,8 @@ function quiz(){
   $("#app").innerHTML=`
   <div class="top"><button class="btn ghost" id="back">${backLabel}</button><span class="meta num">${sess&&!S.review?"랜덤 ":""}${S.idx+1} / ${S.list.length} · ${q.p}점</span></div>
   ${sess&&!S.review?`<div class="prog"><i style="width:${Math.round(Object.keys(sess.picks).length/sess.ids.length*100)}%"></i></div>`:""}
-  <div class="qmeta"><span class="tag">${q.era}</span><span class="src num">제${q.r}회 ${q.n}번</span>${q.hot?`<span class="src">· ${esc(q.hot)}</span>`:""}</div>
+  ${done?`<div class="qmeta"><span class="tag">${q.era}</span><span class="src num">제${q.r}회 ${q.n}번</span>${q.topic?`<span class="src">· ${esc(q.hot||q.topic)}</span>`:""}</div>`
+  :`<div class="qmeta"><button class="kw-btn" id="kw" aria-expanded="${!!S.kw}">${S.kw?"키워드 숨기기":"키워드 보기"}</button>${S.kw?`<span class="kw"><span class="tag">${q.era}</span><b>${esc(q.hot||q.topic)}</b></span>`:`<span class="src">막히면 힌트로 열어 보세요</span>`}</div>`}
   <div class="sheet"><img id="qimg" alt="제${q.r}회 ${q.n}번 문제"></div>
   ${done?`<div class="result">
     <div class="verdict ${pick===q.a?"ok":"no"}">${pick===q.a?"정답이에요":`오답이에요 · 정답은 ${MARK[q.a]}`}</div>
@@ -490,14 +494,15 @@ function quiz(){
   const nextLabel=!last?"다음":sess&&!S.review?(sess.fin?"결과 보기":"안 푼 문제로"):sess?"결과로":"목록으로";
   bar.innerHTML=`<div class="bar-in"><div class="opts">${[1,2,3,4,5].map(i=>`<button class="opt ${done&&i===q.a?"right":""} ${done&&i===pick&&pick!==q.a?"wrongpick":""}" data-i="${i}" ${done?"disabled":""} aria-label="${i}번 선택">${MARK[i]}</button>`).join("")}</div>
   <div class="nav"><button class="btn ghost" id="prev" ${S.idx?"":"disabled"}>이전</button><button class="btn" id="next">${nextLabel}</button></div></div>`;
+  if($("#kw"))$("#kw").onclick=()=>{S.kw=!S.kw;quiz()};
   fitPad();
   bar.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
     const v=+b.dataset.i;S.ans[q.id]=v;
     if(sess){sess.picks[q.id]=v;if(Object.keys(sess.picks).length>=sess.ids.length)sess.fin=true}
     save();quiz();const r=document.querySelector(".result");if(r)r.scrollIntoView({behavior:"smooth",block:"start"})});
   $("#back").onclick=()=>{if(sess&&S.review)sessResult(sess);else if(sess){S.tab="rand";S.sess=null;home()}else home();window.scrollTo(0,0)};
-  $("#prev").onclick=()=>{S.idx--;quiz();window.scrollTo(0,0)};
-  $("#next").onclick=()=>{if(!last){S.idx++;quiz();window.scrollTo(0,0)}else if(sess){if(!S.review&&!sess.fin){const i=sess.ids.findIndex(id=>!sess.picks[id]);S.idx=i;quiz()}else sessResult(sess);window.scrollTo(0,0)}else{home();window.scrollTo(0,0)}};
+  $("#prev").onclick=()=>{S.kw=false;S.idx--;quiz();window.scrollTo(0,0)};
+  $("#next").onclick=()=>{S.kw=false;if(!last){S.idx++;quiz();window.scrollTo(0,0)}else if(sess){if(!S.review&&!sess.fin){const i=sess.ids.findIndex(id=>!sess.picks[id]);S.idx=i;quiz()}else sessResult(sess);window.scrollTo(0,0)}else{home();window.scrollTo(0,0)}};
   if($("#retry"))$("#retry").onclick=()=>{delete S.ans[q.id];save();quiz()};
 }
 home();
