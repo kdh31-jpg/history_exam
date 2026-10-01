@@ -159,6 +159,9 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .kw-t b{font-weight:600;font-size:14px;line-height:1.35}
 .kw-t em.bad{font-style:normal;color:var(--bad)}
 .kw-go{flex:none;font-size:12px;color:var(--accent);font-weight:600}
+
+/* 선택지 바: 화면 아래에 붙어 있되, 앱 화면 높이가 내용에 맞춰 늘어나는 환경에서도 문제 바로 아래에 보이도록 sticky 사용 */
+.bar{position:sticky;bottom:0;z-index:5;box-shadow:0 -4px 12px rgba(0,0,0,.06)}
 .sheet img.loading{min-height:320px;background:var(--line)}</style>
 <div class="wrap" id="app"></div>
 <div class="bar" id="bar" hidden></div>
@@ -292,7 +295,7 @@ function tabs(){return `<nav class="tabs" role="tablist">
   <button role="tab" aria-selected="${S.tab==="part"}" data-t="part">시대별 문제풀이</button></nav>`}
 function bindTabs(){document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;S.confirm=false;save();home();window.scrollTo(0,0)})}
 /* 하단 고정 버튼 높이만큼 본문 아래 여백을 확보해서 문제 끝부분(④·⑤ 선택지)이 가려지지 않게 함 */
-function fitPad(){const bar=$("#bar"),app=$("#app");if(!bar||!app)return;app.style.paddingBottom=bar.hidden?"":(bar.offsetHeight+32)+"px"}
+function fitPad(){const bar=$("#bar"),app=$("#app");if(!bar||!app)return;app.style.paddingBottom=bar.hidden?"":"16px"}
 window.addEventListener("resize",()=>fitPad());
 function home(){S.view="home";$("#bar").hidden=true;fitPad();S.sess=null;if(!VIEWS[S.tab])S.tab="hot";VIEWS[S.tab]();bindTabs()}
 const VIEWS={hot:()=>hotHome(),rand:()=>randHome(),part:()=>partHome()};
